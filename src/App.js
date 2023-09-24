@@ -261,6 +261,28 @@ class App extends Component {
     score: 0,
     selectedimageid: '',
     time: 60,
+    active: true,
+  }
+
+  componentDidMount() {
+    this.timerID = setInterval(this.seconds, 1000)
+    const {time, selectedimageEl, selectedimageid} = this.state
+    const randomnum = Math.floor(Math.random() * imagesList.length)
+    this.setState({
+      selectedimageEl:
+        'https://assets.ccbp.in/frontend/react-js/match-game/orange-img.png',
+      selectedimageid: 'b11ec8ce-35c9-4d67-a7f7-07516d0d8186',
+    })
+    const filteredlist = imagesList.filter(i => i.category === 'FRUIT')
+  }
+
+  seconds = () => {
+    const {time, selectedimageEl, selectedimageid} = this.state
+    if (time !== 0) {
+      this.setState(prevState => ({time: prevState.time - 1}))
+    } else {
+      this.setState({active: false})
+    }
   }
 
   selectedEl = tabId => {
@@ -270,51 +292,84 @@ class App extends Component {
     console.log(filtered)
   }
 
+  reset = () => {
+    this.setState({time: 60, score: 0, active: true})
+  }
+
   matchimage = id => {
-    const {list, score, selectedimageEl, selectedimageid} = this.state
+    const {
+      list,
+      score,
+      selectedimageEl,
+      selectedimageid,
+      time,
+      active,
+    } = this.state
     const randomnum = Math.floor(Math.random() * imagesList.length)
     this.setState({
       selectedimageEl: imagesList[randomnum].imageUrl,
       selectedimageid: imagesList[randomnum].id,
     })
-    if (id === selectedimageid) {
+    if (id === selectedimageid && time !== 0) {
       this.setState(prevState => ({score: prevState.score + 1}))
       console.log('dbksds')
-    }
-  }
-
-  seconds = () => {
-    const {time} = this.state
-    if (time !== 0) {
-      this.setState(prevState => ({time: prevState.time - 1}))
+    } else {
+      this.setState({active: false})
     }
   }
 
   render() {
-    const {list, score, selectedimageEl, time} = this.state
-    const timer = setInterval(this.seconds, 1000)
+    const {list, score, selectedimageEl, time, active} = this.state
     return (
       <div>
         <ul>
           <Navbar score={score} time={time} />
         </ul>
         <div>
-          <img src={selectedimageEl} alt="match" />
+          {active ? (
+            <div>
+              <div>
+                <img src={selectedimageEl} alt="match" />
+              </div>
+              <ul className="SelectEl">
+                {tabsList.map(each => (
+                  <SelectEl
+                    each={each}
+                    key={each.tabId}
+                    selectedEl={this.selectedEl}
+                  />
+                ))}
+              </ul>
+              <ul>
+                {list.map(item => (
+                  <Images
+                    item={item}
+                    key={item.id}
+                    matchimage={this.matchimage}
+                  />
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div>
+              <div>
+                <img
+                  alt="trophy"
+                  src="https://assets.ccbp.in/frontend/react-js/match-game-trophy.png"
+                />
+              </div>
+              <p>YOUR SCORE</p>
+              <p>{score}</p>
+              <button onClick={this.reset}>
+                <img
+                  src="https://assets.ccbp.in/frontend/react-js/match-game-play-again-img.png"
+                  alt="reset"
+                />
+                <p>PLAY AGAIN</p>
+              </button>
+            </div>
+          )}
         </div>
-        <ul className="SelectEl">
-          {tabsList.map(each => (
-            <SelectEl
-              each={each}
-              key={each.tabId}
-              selectedEl={this.selectedEl}
-            />
-          ))}
-        </ul>
-        <ul>
-          {list.map(item => (
-            <Images item={item} key={item.id} matchimage={this.matchimage} />
-          ))}
-        </ul>
       </div>
     )
   }
